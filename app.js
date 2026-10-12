@@ -13,12 +13,12 @@
   var MIN_OPTIONS = 2;
 
   var STEPS = [
-    { key: 's1', title: '상황 캡처', ask: '무엇을 언제까지 결정해야 하나?', makes: '업무·기한·요청자·관련 문서 요약', guard: '추정 내용을 사실로 표현 금지' },
-    { key: 's2', title: '정보 구분', ask: '확정 근거와 최신 출처는?', makes: '확정/미확정/충돌 정보와 확인 질문', guard: '출처 없는 내부 정책 생성 금지' },
-    { key: 's3', title: '비용 판단', ask: '늦거나 틀리면 무엇을 잃나?', makes: '지연/오류 비용과 되돌릴 수 있는 범위', guard: '자동 승인·자동 결정 금지' },
-    { key: 's4', title: '옵션 구성', ask: '지금 가능한 최소 결과물은?', makes: '속도/MVO/품질/축소 옵션과 장단점', guard: '단일 정답처럼 단정 금지' },
-    { key: 's5', title: '에스컬레이션', ask: '누가 무엇을 결정해야 하나?', makes: 'Teams/메일용 보고문: 상황-옵션-추천-요청결정', guard: '승인자를 임의로 지정 금지' },
-    { key: 's6', title: '결정 기록', ask: '언제 다시 볼 것인가?', makes: '결정, 가정, 담당자, 재확인 조건', guard: '검토 없이 자동 배포·저장 금지' }
+    { key: 's1', title: '상황 캡처', ask: '어떤 일을 언제까지 정해야 하나요?', makes: '업무·기한·요청자·관련 문서 요약', guard: '추정 내용을 사실로 표현 금지' },
+    { key: 's2', title: '정보 구분', ask: '지금 확실하게 알고 있는 것과 그 근거는 무엇인가요?', makes: '확정/미확정/충돌 정보와 확인 질문', guard: '출처 없는 내부 정책 생성 금지' },
+    { key: 's3', title: '비용 판단', ask: '늦어지거나 잘못되면 어떤 손해가 생길까요?', makes: '지연/오류 비용과 되돌릴 수 있는 범위', guard: '자동 승인·자동 결정 금지' },
+    { key: 's4', title: '옵션 구성', ask: '지금 바로 낼 수 있는 가장 작은 결과물은 무엇일까요?', makes: '속도/MVO/품질/축소 옵션과 장단점', guard: '단일 정답처럼 단정 금지' },
+    { key: 's5', title: '에스컬레이션', ask: '누가 무엇을 정해 주셔야 할까요?', makes: 'Teams/메일용 보고문: 상황-옵션-추천-요청결정', guard: '승인자를 임의로 지정 금지' },
+    { key: 's6', title: '결정 기록', ask: '언제, 어떤 일이 생기면 다시 살펴볼까요?', makes: '결정, 가정, 담당자, 재확인 조건', guard: '검토 없이 자동 배포·저장 금지' }
   ];
 
   var STARTERS = [
@@ -398,7 +398,7 @@
     var box = $('situationBox');
     var c = currentCase();
     if (c) {
-      box.innerHTML = '<div class="situation"><span class="situation-label">받은 상황 (원문)</span>\n' + esc(c.situation) + '</div>';
+      box.innerHTML = '<div class="situation"><span class="situation-label">받은 상황 (원문) · 천천히 읽고 1단계부터 함께 정리해 보세요</span>\n' + esc(c.situation) + '</div>';
     } else {
       box.innerHTML = '<div class="field mt-24"><label for="customSituation">내 상황 3~5줄 <span class="hint">실명·고객명·사내 수치는 빼고 적으세요</span></label>' +
         '<textarea id="customSituation" rows="4" data-custom="1" placeholder="무슨 일이 있었고, 누가 무엇을 언제까지 원하는지">' + esc(state.custom) + '</textarea></div>';
