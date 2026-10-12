@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<!-- 결정 준비 코파일럿 실습 페이지. 서버·AI 호출 없음. 입력값은 이 브라우저의 localStorage에만 남는다. -->
+<html lang="ko" class="theme-light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>결정 준비 코파일럿 실습 | 청람M&amp;C</title>
+  <meta name="description" content="불확실한 업무 상황을 6단계로 결정 가능한 형태로 정리하는 실습. 입력값은 브라우저 밖으로 나가지 않습니다.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ===== 청람 테마 — 클래스 기반 ===== */
+    html.theme-light {
+      --bg: #FFFFFF; --surface: #F8FAFF; --surface-hover: #EEF3FD;
+      --border: rgba(22,82,216,0.10); --border-strong: rgba(22,82,216,0.22);
+      --text: #1A1A1A; --text-secondary: #666666;
+      --accent: #1652D8; --accent-secondary: #0F3D99; --accent-ink: #FFFFFF;
+      --positive: #059669; --negative: #e11d48; --warning: #d97706;
+      --positive-bg: rgba(5,150,105,0.10); --negative-bg: rgba(225,29,72,0.08); --warning-bg: rgba(217,119,6,0.10);
+      --cr-light-bg: #EEF3FD; --cr-dark-section: #0F0F0F;
+      --input-bg: #FFFFFF;
+      --menu-bg: rgba(255,255,255,0.9); --menu-bg-hover: rgba(255,255,255,0.98);
+      --menu-border: rgba(22,82,216,0.12); --menu-text: #1A1A1A; --menu-item-hover: rgba(22,82,216,0.06);
+      --shadow: 0 8px 24px rgba(15,61,153,0.08);
+    }
+    html.theme-dark {
+      --bg: #0F0F0F; --surface: #1A1A2E; --surface-hover: #252540;
+      --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.18);
+      --text: #EDEDED; --text-secondary: #9A9AA8;
+      --accent: #4B7BF5; --accent-secondary: #6B8FFF; --accent-ink: #FFFFFF;
+      --positive: #10b981; --negative: #f43f5e; --warning: #f59e0b;
+      --positive-bg: rgba(16,185,129,0.14); --negative-bg: rgba(244,63,94,0.14); --warning-bg: rgba(245,158,11,0.14);
+      --cr-light-bg: #1A1A2E; --cr-dark-section: #0A0A0A;
+      --input-bg: #12121F;
+      --menu-bg: rgba(15,15,15,0.9); --menu-bg-hover: rgba(15,15,15,0.98);
+      --menu-border: rgba(75,123,245,0.15); --menu-text: #EDEDED; --menu-item-hover: rgba(75,123,245,0.1);
+      --shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    :root {
+      --space-section: clamp(56px, 4vw + 32px, 96px);
+      --space-gutter: clamp(16px, 4vw, 48px);
+      --wrap: 1120px; --radius: 8px;
+      --duration-fast: 150ms; --duration-normal: 300ms;
+      --cr-hero-text: #FFFFFF; --cr-hero-eyebrow: #8FB0FF;
+      --cr-hero-highlight: #FFD84D; --cr-hero-highlight-hover: #FFE480; --cr-hero-highlight-text: #0F0F0F;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg); color: var(--text);
+      line-height: 1.7; -webkit-font-smoothing: antialiased; letter-spacing: -0.01em;
+      transition: background var(--duration-normal), color var(--duration-normal);
+      overflow-x: hidden;
+    }
+    h1, h2, h3, h4 { color: var(--text); letter-spacing: -0.03em; line-height: 1.25; text-wrap: balance; }
+    h1 { font-weight: 800; font-size: clamp(2.1rem, 5.4vw, 3.6rem); }
+    h2 { font-weight: 700; font-size: clamp(1.6rem, 3.6vw, 2.3rem); }
+    h3 { font-weight: 700; font-size: clamp(1.15rem, 2.2vw, 1.35rem); }
+    p, li, td, th, label { color: var(--text); }
+    .text-secondary { color: var(--text-secondary); }
+    a { color: var(--accent); }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+    .wrap { max-width: var(--wrap); margin: 0 auto; padding-inline: var(--space-gutter); }
+    .section { padding-block: var(--space-section); }
+    .section-alt { background: var(--surface); border-block: 1px solid var(--border); }
+    .eyebrow { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+    .lead { margin-top: 12px; max-width: 62ch; color: var(--text-secondary); }
+    .cr-accent-underline { border-bottom: 2px solid var(--accent); padding-bottom: 6px; display: inline-block; }
+    .cr-square-bullet { list-style: none; }
+    .cr-square-bullet li { padding-left: 20px; position: relative; margin-bottom: 8px; }
+    .cr-square-bullet li::before { content: ''; position: absolute; left: 0; top: 0.72em; width: 6px; height: 6px; background: var(--accent); }
+    .cr-dot-grid {
+      background-image: radial-gradient(circle, var(--cr-hero-text) 0.6px, transparent 0.6px);
+      background-size: 26px 26px; opacity: 0.09; position: absolute; inset: 0; pointer-events: none;
+    }
+    .mt-8 { margin-top: 8px; } .mt-16 { margin-top: 16px; } .mt-24 { margin-top: 24px; } .mt-32 { margin-top: 32px; }
+
+    /* ===== 히어로 ===== */
+    .hero { position: relative; overflow: hidden; background: var(--cr-dark-section); color: var(--cr-hero-text); padding-block: clamp(64px, 8vw, 112px); }
+    .hero::after { content: ''; position: absolute; right: -140px; top: -140px; width: 460px; height: 460px; border: 1px solid rgba(255,255,255,0.07); border-radius: 50%; pointer-events: none; }
+    .hero h1 { color: var(--cr-hero-text); margin-top: 12px; }
+    .hero h1 em { font-style: normal; color: var(--cr-hero-highlight); box-shadow: inset 0 -0.14em 0 rgba(255,216,77,0.24); }
+    .hero-eyebrow { color: var(--cr-hero-eyebrow); }
+    .hero-sub { margin-top: 20px; max-width: 50ch; font-size: clamp(1rem, 1.4vw, 1.125rem); color: rgba(255,255,255,0.74); }
+    .hero-flow { margin-top: 36px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; max-width: 760px; }
+    .hero-flow span { font-size: 0.8rem; color: rgba(255,255,255,0.8); border-top: 2px solid rgba(255,255,255,0.22); padding-top: 8px; }
+    .hero-flow span b { display: block; font-family: 'Inter', sans-serif; color: var(--cr-hero-highlight); font-size: 0.95rem; }
+    .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px; }
+
+    /* ===== 버튼 ===== */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: inherit; font-size: 0.9375rem; font-weight: 600;
+      padding: 11px 20px; border-radius: 6px; border: 1px solid transparent;
+      cursor: pointer; text-decoration: none; background: transparent; color: var(--text);
+      transition: transform var(--duration-fast) ease, background var(--duration-fast) ease, color var(--duration-fast) ease, border-color var(--duration-fast) ease, opacity var(--duration-fast) ease;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-hero { background: var(--cr-hero-highlight); color: var(--cr-hero-highlight-text); padding: 14px 26px; font-size: 1rem; }
+    .btn-hero:hover { background: var(--cr-hero-highlight-hover); }
+    .btn-hero-ghost { color: var(--cr-hero-text); border-color: rgba(255,255,255,0.28); padding: 14px 26px; font-size: 1rem; }
+    .btn-hero-ghost:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.5); }
+    .btn-primary { background: var(--accent); color: var(--accent-ink); }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-secondary); }
+    .btn-line { border-color: var(--border-strong); }
+    .btn-line:hover:not(:disabled) { background: var(--surface-hover); border-color: var(--accent); }
+    .btn-small { padding: 6px 12px; font-size: 0.8125rem; }
+    .btn-danger-text { color: var(--negative); }
+
+    /* ===== 안내 배너 ===== */
+    .notice { background: var(--cr-light-bg); border-left: 4px solid var(--warning); border-radius: 0 var(--radius) var(--radius) 0; padding: 18px 22px; }
+    .notice li, .notice p { font-size: 0.9375rem; color: var(--text-secondary); }
+    .notice .cr-square-bullet li::before { background: var(--warning); }
+    .notice-safe { border-left-color: var(--positive); }
+    .notice-safe .cr-square-bullet li::before { background: var(--positive); }
+
+    /* ===== 사례 선택 ===== */
+    .case-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
+    .case-btn {
+      text-align: left; font-family: inherit; cursor: pointer; color: var(--text);
+      background: var(--bg); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 16px;
+      transition: border-color var(--duration-fast), transform var(--duration-fast), box-shadow var(--duration-fast);
+    }
+    .case-btn:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow); }
+    .case-btn[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--surface-hover); }
+    .case-btn small { display: block; font-size: 0.75rem; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; }
+    .case-btn strong { display: block; margin-top: 4px; font-size: 0.975rem; line-height: 1.4; }
+    .situation {
+      margin-top: 20px; background: var(--bg); border: 1px dashed var(--border-strong); border-radius: var(--radius);
+      padding: 16px 18px; white-space: pre-line; font-size: 0.95rem;
+    }
+    .situation-label { font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); }
+
+    /* ===== 위저드 ===== */
+    .wizard { display: grid; grid-template-columns: 220px 1fr; gap: 28px; margin-top: 32px; align-items: start; }
+    .stepper { position: sticky; top: 72px; list-style: none; display: grid; gap: 4px; }
+    .stepper button {
+      width: 100%; display: flex; gap: 10px; align-items: center; text-align: left;
+      font-family: inherit; font-size: 0.9rem; color: var(--text-secondary);
+      background: transparent; border: none; border-radius: 6px; padding: 9px 10px; cursor: pointer;
+      transition: background var(--duration-fast), color var(--duration-fast);
+    }
+    .stepper button:hover:not(:disabled) { background: var(--surface-hover); color: var(--text); }
+    .stepper button:disabled { cursor: not-allowed; opacity: 0.5; }
+    .stepper button[aria-current="step"] { background: var(--surface-hover); color: var(--text); font-weight: 700; }
+    .step-num {
+      flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+      font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 700;
+      border: 1.5px solid var(--border-strong); color: var(--text-secondary);
+    }
+    .stepper button[aria-current="step"] .step-num { border-color: var(--accent); color: var(--accent); }
+    .stepper .is-done .step-num { background: var(--positive); border-color: var(--positive); color: #FFFFFF; }
+
+    .panel { background: var(--bg); border: 1px solid var(--border-strong); border-radius: 12px; padding: clamp(18px, 3vw, 32px); box-shadow: var(--shadow); min-width: 0; }
+    .panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: flex-start; }
+    .ask { margin-top: 6px; font-size: 1.05rem; font-weight: 600; }
+    .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+    .meta { font-size: 0.85rem; border-radius: 6px; padding: 10px 12px; background: var(--surface); }
+    .meta b { display: block; font-size: 0.75rem; letter-spacing: 0.04em; color: var(--text-secondary); }
+    .meta-guard { background: var(--negative-bg); }
+    .meta-guard b { color: var(--negative); }
+
+    .fields { margin-top: 24px; display: grid; gap: 16px; }
+    .field label, .field-label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 6px; }
+    .field .hint { font-weight: 400; color: var(--text-secondary); font-size: 0.8rem; }
+    input[type="text"], textarea, select {
+      width: 100%; font-family: inherit; font-size: 0.95rem; color: var(--text);
+      background: var(--input-bg); border: 1px solid var(--border-strong); border-radius: 6px; padding: 10px 12px;
+      transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+    }
+    textarea { resize: vertical; min-height: 72px; line-height: 1.6; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--surface-hover); }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+    .item-card { border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; background: var(--surface); }
+    .item-card[data-status="확정"] { border-left: 4px solid var(--positive); }
+    .item-card[data-status="미확정"] { border-left: 4px solid var(--warning); }
+    .item-card[data-status="충돌"] { border-left: 4px solid var(--negative); }
+    .item-top { display: grid; grid-template-columns: 1fr 120px auto; gap: 10px; align-items: center; }
+    .option-card { border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; background: var(--surface); }
+    .option-card.is-reco { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+    .option-top { display: grid; grid-template-columns: 120px 1fr auto; gap: 10px; align-items: center; }
+    .reco-label { display: inline-flex; gap: 6px; align-items: center; font-size: 0.85rem; font-weight: 600; white-space: nowrap; cursor: pointer; }
+
+    .checks { margin-top: 24px; display: grid; gap: 6px; }
+    .check { display: flex; gap: 8px; font-size: 0.875rem; align-items: baseline; }
+    .check::before { flex: none; font-weight: 800; width: 1.1em; }
+    .check.ok { color: var(--positive); } .check.ok::before { content: '✓'; }
+    .check.ng { color: var(--negative); } .check.ng::before { content: '!'; }
+
+    .confirm-bar {
+      margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);
+      display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;
+    }
+    .confirm-box { display: flex; gap: 10px; align-items: center; font-weight: 600; cursor: pointer; }
+    .confirm-box input { width: 20px; height: 20px; accent-color: var(--positive); }
+    .confirm-box.is-locked { opacity: 0.45; cursor: not-allowed; }
+    .nav-btns { display: flex; gap: 8px; }
+
+    .draft { margin-top: 20px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 16px; }
+    .draft pre { white-space: pre-wrap; word-break: break-word; font-family: inherit; font-size: 0.92rem; line-height: 1.7; }
+    .draft-head { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+
+    /* ===== 결과 ===== */
+    .result { margin-top: 32px; }
+    .result[hidden] { display: none; }
+
+    /* ===== 내부망 구축 ===== */
+    .build-grid { display: grid; grid-template-columns: 1fr 1.25fr; gap: 28px; margin-top: 32px; align-items: start; }
+    .build-steps { counter-reset: b; list-style: none; display: grid; gap: 14px; }
+    .build-steps li { counter-increment: b; position: relative; padding-left: 44px; }
+    .build-steps li::before {
+      content: counter(b); position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 6px;
+      background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-family: 'Inter', sans-serif; font-weight: 700;
+    }
+    .build-steps strong { display: block; }
+    .build-steps p { font-size: 0.9rem; color: var(--text-secondary); }
+    .code-box { background: var(--cr-dark-section); color: #E6E6E6; border-radius: var(--radius); overflow: hidden; }
+    .code-box-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; }
+    .code-box-head span { font-size: 0.8rem; color: #B5B5B5; }
+    .code-box pre { padding: 16px; max-height: 420px; overflow: auto; white-space: pre-wrap; word-break: break-word; font-family: 'Inter', 'Noto Sans KR', monospace; font-size: 0.8rem; line-height: 1.65; color: #E6E6E6; }
+    .btn-code { color: #FFFFFF; border-color: rgba(255,255,255,0.28); }
+    .btn-code:hover { background: rgba(255,255,255,0.08); }
+    .starter-list { display: grid; gap: 8px; margin-top: 12px; }
+    .starter { display: flex; justify-content: space-between; gap: 10px; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; font-size: 0.9rem; }
+
+    /* ===== 범위·지표 표 ===== */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 28px; }
+    .card { background: var(--bg); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 22px; }
+    .table-wrap { overflow-x: auto; margin-top: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-size: 0.78rem; color: var(--text-secondary); font-weight: 700; letter-spacing: 0.04em; }
+    .pill { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+    .pill-high { background: var(--positive-bg); color: var(--positive); }
+    .pill-mid { background: var(--warning-bg); color: var(--warning); }
+    .pill-low { background: var(--negative-bg); color: var(--negative); }
+    .checklist { list-style: none; display: grid; gap: 8px; margin-top: 12px; }
+    .checklist label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: 0.92rem; }
+    .checklist input { margin-top: 5px; width: 16px; height: 16px; accent-color: var(--accent); flex: none; }
+
+    /* ===== 토스트 ===== */
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; z-index: 10000; transform: translate(-50%, 20px); opacity: 0;
+      background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 8px; font-size: 0.9rem; font-weight: 600;
+      transition: opacity var(--duration-normal), transform var(--duration-normal); pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    /* ===== 푸터 ===== */
+    .footer { border-top: 1px solid var(--border); padding-block: 36px; }
+    .footer-inner { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+    .footer-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+    .footer-mark { width: 10px; height: 10px; background: var(--accent); flex: none; }
+    .footer p { font-size: 0.85rem; color: var(--text-secondary); }
+
+    /* ===== 애니메이션 ===== */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes panelIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
+    .animate { animation: fadeInUp 0.6s ease-out both; }
+    .animate.delay-1 { animation-delay: 0.1s; } .animate.delay-2 { animation-delay: 0.2s; } .animate.delay-3 { animation-delay: 0.3s; }
+    .panel-enter { animation: panelIn 0.35s ease-out both; }
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      html { scroll-behavior: auto; }
+    }
+    html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+
+    /* ===== 메뉴 ===== */
+    .viz-menu { position: fixed; top: 12px; right: 16px; z-index: 9999; }
+    .viz-menu-toggle {
+      width: 42px; height: 42px; border-radius: 12px; background: var(--menu-bg); border: 1px solid var(--menu-border);
+      color: var(--menu-text); cursor: pointer; display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    }
+    .viz-menu-toggle:hover { background: var(--menu-bg-hover); }
+    .viz-menu-dropdown {
+      position: absolute; top: 52px; right: 0; min-width: 210px; background: var(--menu-bg); border: 1px solid var(--menu-border);
+      border-radius: 12px; padding: 8px; opacity: 0; visibility: hidden; transform: translateY(-8px);
+      transition: opacity var(--duration-fast), visibility var(--duration-fast), transform var(--duration-fast);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    .viz-menu-dropdown.open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .viz-menu-dropdown button, .viz-menu-dropdown a {
+      width: 100%; padding: 10px 14px; border: none; border-radius: 8px; background: transparent; color: var(--menu-text);
+      font-size: 14px; font-family: inherit; cursor: pointer; text-align: left; text-decoration: none;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .viz-menu-dropdown button:hover, .viz-menu-dropdown a:hover { background: var(--menu-item-hover); }
+    .skip-link { position: absolute; left: -9999px; z-index: 10000; padding: 8px 16px; background: var(--accent); color: #FFFFFF; border-radius: 4px; }
+    .skip-link:focus { position: fixed; left: 16px; top: 16px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    /* ===== 반응형 ===== */
+    @media (max-width: 960px) {
+      .case-grid { grid-template-columns: 1fr 1fr; }
+      .wizard { grid-template-columns: 1fr; }
+      .stepper { position: static; grid-template-columns: repeat(6, 1fr); }
+      .stepper button { flex-direction: column; gap: 4px; font-size: 0.72rem; padding: 6px 2px; text-align: center; }
+      .build-grid, .two-col { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .case-grid, .meta-grid, .row-2, .row-3 { grid-template-columns: 1fr; }
+      .hero-flow { grid-template-columns: repeat(3, 1fr); row-gap: 14px; }
+      .item-top { grid-template-columns: 1fr 1fr; }
+      .item-top input { grid-column: 1 / -1; }
+      .option-top { grid-template-columns: 1fr 1fr; }
+      .option-top input { grid-column: 1 / -1; }
+      .stepper .step-label { display: none; }
+      .cta-row .btn { width: 100%; }
+      .confirm-bar { flex-direction: column; align-items: stretch; }
+      .nav-btns .btn { flex: 1; }
+    }
+
+    @media print {
+      body { background: white !important; color: black !important; }
+      .viz-menu, .hero, #practice, #build, #scope, .footer, .result .btn { display: none !important; }
+      .result { display: block !important; margin: 0; }
+      .reveal { opacity: 1 !important; transform: none !important; }
+      * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
+
+  <div class="viz-menu">
+    <button class="viz-menu-toggle" id="vizMenuToggle" aria-label="메뉴 열기" aria-haspopup="true" aria-expanded="false">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/>
+      </svg>
+    </button>
+    <div class="viz-menu-dropdown" id="vizMenuDropdown">
+      <button type="button" data-action="theme"><span id="themeIcon" aria-hidden="true">☀️</span><span id="themeLabel">라이트</span></button>
+      <a href="#practice"><span aria-hidden="true">✍️</span><span>실습하기</span></a>
+      <a href="#build"><span aria-hidden="true">🛠️</span><span>내부망에서 만들기</span></a>
+      <button type="button" data-action="reset"><span aria-hidden="true">🗑️</span><span>입력 전체 지우기</span></button>
+    </div>
+  </div>
+
+  <main id="main-content">
+    <header class="hero">
+      <div class="cr-dot-grid" aria-hidden="true"></div>
+      <div class="wrap">
+        <p class="eyebrow hero-eyebrow animate">Non-People Manager 실습 · Microsoft 365 Copilot 에이전트</p>
+        <h1 class="animate delay-1">결정은 내가,<br><em>준비는 코파일럿이</em>.</h1>
+        <p class="hero-sub animate delay-2">애매한 업무 상황을 6단계로 쪼개 결정 가능한 형태로 만드는 연습입니다. 여기서 흐름을 익히고, 사내 Microsoft 365 Copilot에서 같은 에이전트를 직접 만들어 씁니다.</p>
+        <div class="hero-flow animate delay-2" aria-label="6단계 흐름">
+          <span><b>01</b>상황 캡처</span><span><b>02</b>정보 구분</span><span><b>03</b>비용 판단</span>
+          <span><b>04</b>옵션 구성</span><span><b>05</b>에스컬레이션</span><span><b>06</b>결정 기록</span>
+        </div>
+        <div class="cta-row animate delay-3">
+          <a class="btn btn-hero" href="#practice">실습 시작</a>
+          <a class="btn btn-hero-ghost" href="#build">내부망 구축 가이드</a>
+        </div>
+      </div>
+    </header>
+
+    <section class="section" id="practice" aria-labelledby="practice-heading">
+      <div class="wrap">
+        <p class="eyebrow">Part 1 · 실습</p>
+        <h2 id="practice-heading" class="mt-8"><span class="cr-accent-underline">사례 하나를 골라 6단계를 직접 채워보세요</span></h2>
+        <p class="lead">각 단계는 완료 기준을 채우고 <b>검토·확정</b>에 체크해야 다음으로 넘어갑니다. 실제 에이전트도 같은 규칙으로 동작합니다.</p>
+
+        <div class="notice notice-safe mt-24" data-reveal>
+          <ul class="cr-square-bullet">
+            <li>이 페이지는 AI를 호출하지 않고 서버로 아무것도 보내지 않습니다. 입력값은 지금 쓰는 브라우저에만 저장됩니다.</li>
+            <li>그래도 실제 고객명·사내 수치·인사 정보는 넣지 마세요. 실제 업무는 사내 Copilot에서 다룹니다.</li>
+          </ul>
+        </div>
+
+        <div class="case-grid" id="caseGrid" role="group" aria-label="실습 사례 선택"></div>
+        <div id="situationBox"></div>
+
+        <div class="wizard" id="wizard">
+          <nav aria-label="단계 이동"><ol class="stepper" id="stepper"></ol></nav>
+          <div class="panel" id="panel" aria-live="polite"></div>
+        </div>
+
+        <section class="result" id="result" aria-labelledby="result-heading" hidden>
+          <div class="card">
+            <div class="draft-head">
+              <h3 id="result-heading">결정 준비 자료 (초안)</h3>
+              <div class="nav-btns">
+                <button type="button" class="btn btn-line btn-small" data-copy="resultText">복사</button>
+                <button type="button" class="btn btn-line btn-small" data-action="print">인쇄 / PDF</button>
+              </div>
+            </div>
+            <p class="text-secondary">검토 후 직접 SharePoint 또는 OneNote에 기록하세요. 자동 저장·발송은 하지 않습니다.</p>
+            <div class="draft"><pre id="resultText"></pre></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="build" aria-labelledby="build-heading">
+      <div class="wrap">
+        <p class="eyebrow">Part 2 · 내부망 구축</p>
+        <h2 id="build-heading" class="mt-8"><span class="cr-accent-underline">사내 Microsoft 365 Copilot에서 직접 만들기</span></h2>
+        <p class="lead">보안을 위해 실제 에이전트는 각자 회사 계정 안에서 만듭니다. 아래 지침을 복사해 붙여 넣으면 실습과 같은 6단계 흐름으로 동작합니다.</p>
+
+        <div class="build-grid">
+          <ol class="build-steps" data-reveal>
+            <li><strong>Copilot 앱에서 에이전트 만들기</strong><p>회사 계정으로 Microsoft 365 Copilot에 들어가 에이전트 만들기(Agent Builder)를 엽니다. 메뉴 이름은 테넌트·버전에 따라 다를 수 있습니다.</p></li>
+            <li><strong>이름·설명 입력</strong><p>이름: 결정 준비 코파일럿<br>설명: 불확실한 업무 상황을 결정 문제·정보 상태·옵션·에스컬레이션 초안으로 정리합니다. 결정은 사용자가 합니다.</p></li>
+            <li><strong>지침 붙여 넣기</strong><p>'지침 복사' 버튼으로 전체를 복사해 '지침(Instructions)' 칸에 붙여 넣습니다.</p></li>
+            <li><strong>지식원은 최소로</strong><p>승인선·SOP·담당자 문서가 있는 SharePoint 위치만 연결합니다. 직원·리더 평가 자료가 있는 위치는 연결하지 않습니다. 문서마다 최신 기준과 소유자를 먼저 정하세요.</p></li>
+            <li><strong>시작 프롬프트 등록</strong><p>아래 예시 4개를 시작 프롬프트로 넣습니다.</p></li>
+            <li><strong>실제 사례로 테스트 후 공유</strong><p>자기 업무 사례 2~3건으로 돌려보고 체크리스트를 통과하면 팀에 공유합니다.</p></li>
+          </ol>
+
+          <div data-reveal>
+            <div class="code-box">
+              <div class="code-box-head">
+                <span id="instrMeta">지침(Instructions)</span>
+                <div class="nav-btns">
+                  <button type="button" class="btn btn-code btn-small" data-copy="instrText">지침 복사</button>
+                  <button type="button" class="btn btn-code btn-small" data-action="download">.txt 받기</button>
+                </div>
+              </div>
+              <pre id="instrText"></pre>
+            </div>
+            <h3 class="mt-24">시작 프롬프트 예시</h3>
+            <div class="starter-list" id="starterList"></div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card" data-reveal>
+            <h3>테스트 체크리스트</h3>
+            <p class="text-secondary mt-8">하나라도 실패하면 지침이나 지식원을 고칩니다.</p>
+            <ul class="checklist" id="testChecklist"></ul>
+          </div>
+          <div class="card" data-reveal>
+            <h3>성공 지표 (정답률이 아님)</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th scope="col">지표</th><th scope="col">목표</th></tr></thead>
+                <tbody>
+                  <tr><td>치명적 오판</td><td>0건</td></tr>
+                  <tr><td>출력 구조 만족도</td><td>70% 이상</td></tr>
+                  <tr><td>업무 준비시간</td><td>20% 감소 또는 유용성 4/5 이상</td></tr>
+                  <tr><td>가드레일 위반</td><td>0건</td></tr>
+                  <tr><td>반복 사용 의향</td><td>70% 이상</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="scope" aria-labelledby="scope-heading">
+      <div class="wrap">
+        <p class="eyebrow">범위</p>
+        <h2 id="scope-heading" class="mt-8"><span class="cr-accent-underline">에이전트가 할 일, 사람과 조직이 할 일</span></h2>
+        <div class="table-wrap mt-24" data-reveal>
+          <table>
+            <thead><tr><th scope="col">구분</th><th scope="col">현실성</th><th scope="col">에이전트 역할</th><th scope="col">사람·조직 책임</th></tr></thead>
+            <tbody>
+              <tr><td>정보 정리</td><td><span class="pill pill-high">높음</span></td><td>확정·미확정·최신 여부 구분, 출처 표시</td><td>최신 문서 유지, 원천 데이터 책임</td></tr>
+              <tr><td>판단 지원</td><td><span class="pill pill-high">높음</span></td><td>지연/오류 비용 질문, 선택지·리스크 비교</td><td>최종 선택과 책임</td></tr>
+              <tr><td>에스컬레이션</td><td><span class="pill pill-high">높음</span></td><td>보고문·질문·옵션 초안, 필요한 결정 명시</td><td>승인선과 의사결정권 정의</td></tr>
+              <tr><td>협업 조정</td><td><span class="pill pill-mid">중간</span></td><td>이해관계자·요구 충돌, 후속조치 정리</td><td>무응답·권한 충돌·자원 배분 해결</td></tr>
+              <tr><td>조직문화</td><td><span class="pill pill-low">낮음</span></td><td>사실 기반 대화 준비와 기록 보조</td><td>심리적 안전, 리더 행동, 공정성</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="notice mt-24" data-reveal>
+          <ul class="cr-square-bullet">
+            <li>하지 않는 것: 자동 승인·자동 결정·외부 자동 발송, 인력 부족 자체의 해결, 직원·리더 평가 내용 처리.</li>
+            <li>가장 큰 위험은 승인선·SOP 문서가 없거나 낡은 상태에서 그럴듯한 답을 만드는 것입니다. 승인자는 문서에서 확인한 사람만 적습니다.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <p class="footer-brand"><span class="footer-mark" aria-hidden="true"></span>청람M&amp;C</p>
+      <p>실습용 가상 사례입니다. 실제 사내 데이터가 아닙니다.</p>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="cases.js"></script>
+  <script src="copilot-instructions.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
